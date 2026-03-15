@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify, send_from_directory
 import tensorflow as tf
 import numpy as np
+import os
 from PIL import Image
 
 app = Flask(__name__)
@@ -43,4 +44,5 @@ def predict():
 if __name__ == '__main__':
     load_model()
     print("\n Open browser: http://localhost:5000\n")
-    app.run(debug=False, port=5000, host='0.0.0.0')
+port = int(os.environ.get('PORT', 5000))
+app.run(debug=False, port=port, host='0.0.0.0')

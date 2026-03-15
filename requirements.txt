@@ -1,7 +1,5 @@
-tensorflow>=2.12
+flask
+tensorflow
 numpy
-matplotlib
-seaborn
-scikit-learn
-opencv-python
 Pillow
+gunicorn
