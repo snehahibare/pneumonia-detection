@@ -10,7 +10,7 @@ model = None
 def load_model():
     global model
     print("Loading model...")
-    model = tf.keras.models.load_model("pneumonia_model.h5")
+    model = tf.keras.models.load_model("pneumonia_model.", compile=False)
     print("Model loaded! ✅")
 
 @app.route('/')
@@ -44,5 +44,10 @@ def predict():
 if __name__ == '__main__':
     load_model()
     print("\n Open browser: http://localhost:5000\n")
-port = int(os.environ.get('PORT', 5000))
-app.run(debug=False, port=port, host='0.0.0.0')
+port = int(os.environ.get("PORT", 10000))
+app.run(host="0.0.0.0", port=port)
+if __name__ == "__main__":
+    import os
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
+
