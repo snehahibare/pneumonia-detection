@@ -1,0 +1,8 @@
+chest_xray/
+pneumonia_model.h5
+__pycache__/
+*.pyc
+*.h5
+*.jpeg
+*.jpg
+*.png

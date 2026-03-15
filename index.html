@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PneumoScan AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0e1a;--surface:#111827;--surface2:#1a2235;--accent:#00d4ff;--accent2:#7c3aed;--normal:#10b981;--pneumonia:#ef4444;--moderate:#f59e0b;--text:#e2e8f0;--muted:#64748b;--border:rgba(255,255,255,0.07)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
+.container{max-width:900px;margin:0 auto;padding:40px 20px}
+header{text-align:center;margin-bottom:50px}
+h1{font-family:'Syne',sans-serif;font-size:clamp(2rem,5vw,3.2rem);font-weight:800;background:linear-gradient(135deg,#fff 0%,var(--accent) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.subtitle{color:var(--muted);font-size:1rem;margin-top:10px}
+.badge{display:inline-block;background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.2);color:var(--accent);padding:4px 14px;border-radius:100px;font-size:.75rem;margin-bottom:20px}
+.logo-icon{width:48px;height:48px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 16px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:40px;margin-bottom:30px}
+.upload-zone{border:2px dashed rgba(0,212,255,0.2);border-radius:16px;padding:60px 40px;text-align:center;cursor:pointer;transition:all .3s;background:rgba(0,212,255,0.02);position:relative}
+.upload-zone:hover{border-color:var(--accent);background:rgba(0,212,255,0.05)}
+.upload-icon{font-size:3rem;margin-bottom:16px;display:block}
+.upload-zone h3{font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:700;margin-bottom:8px;color:#fff}
+.upload-zone p{color:var(--muted);font-size:.9rem}
+.upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+#preview-section{display:none;margin-top:24px}
+#preview-section.show{display:block}
+.preview-container{display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap}
+#preview-img{width:200px;height:200px;object-fit:cover;border-radius:16px;border:2px solid var(--border);flex-shrink:0}
+.preview-info{flex:1;min-width:200px}
+.file-name{font-family:'Syne',sans-serif;font-weight:600;font-size:1rem;color:#fff;margin-bottom:8px;word-break:break-all}
+.file-size{color:var(--muted);font-size:.85rem;margin-bottom:20px}
+.btn{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;padding:14px 32px;border-radius:12px;font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;transition:all .3s;width:100%}
+.btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 10px 30px rgba(0,212,255,0.3)}
+.btn:disabled{opacity:.6;cursor:not-allowed}
+#result-section{display:none}
+#result-section.show{display:block}
+.result-card{background:var(--surface);border-radius:24px;padding:40px;border:1px solid var(--border);text-align:center}
+.result-icon{font-size:4rem;margin-bottom:16px}
+.result-label{font-family:'Syne',sans-serif;font-size:2.5rem;font-weight:800;margin-bottom:8px}
+.result-label.normal{color:var(--normal)}
+.result-label.pneumonia{color:var(--pneumonia)}
+.result-confidence{font-size:1.1rem;color:var(--muted);margin-bottom:20px}
+.result-confidence span{color:#fff;font-weight:600}
+.conf-bar-wrap{background:var(--surface2);border-radius:100px;height:10px;margin:20px 0;overflow:hidden}
+.conf-bar{height:100%;border-radius:100px;transition:width 1.5s ease;width:0%}
+.conf-bar.normal{background:linear-gradient(90deg,#059669,var(--normal))}
+.conf-bar.pneumonia{background:linear-gradient(90deg,#dc2626,var(--pneumonia))}
+.risk-badge{display:inline-block;padding:8px 24px;border-radius:100px;font-family:'Syne',sans-serif;font-weight:700;font-size:.9rem;margin-bottom:24px}
+.risk-badge.low{background:rgba(16,185,129,.15);color:var(--normal);border:1px solid rgba(16,185,129,.3)}
+.risk-badge.moderate{background:rgba(245,158,11,.15);color:var(--moderate);border:1px solid rgba(245,158,11,.3)}
+.risk-badge.high{background:rgba(239,68,68,.15);color:var(--pneumonia);border:1px solid rgba(239,68,68,.3)}
+.stats-row{display:flex;gap:16px;margin-top:24px;flex-wrap:wrap}
+.stat-box{flex:1;min-width:120px;background:var(--surface2);border-radius:14px;padding:16px;text-align:center}
+.stat-value{font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:700;color:var(--accent)}
+.stat-label{font-size:.75rem;color:var(--muted);margin-top:4px}
+.disclaimer{background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.15);border-radius:12px;padding:16px 20px;margin-top:24px;font-size:.82rem;color:var(--moderate);text-align:left;line-height:1.6}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--muted);padding:12px 28px;border-radius:12px;font-family:'Syne',sans-serif;font-size:.9rem;font-weight:600;cursor:pointer;transition:all .3s;margin-top:16px;width:100%}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+.spinner{display:inline-block;width:20px;height:20px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle;margin-right:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="badge">⚡ AI-Powered Analysis</div>
+    <div class="logo-icon">🫁</div>
+    <h1>PneumoScan AI</h1>
+    <p class="subtitle">Upload a chest X-ray — get instant pneumonia detection results</p>
+  </header>
+
+  <div class="card">
+    <div class="upload-zone" id="drop-zone">
+      <input type="file" id="file-input" accept="image/*">
+      <span class="upload-icon">📤</span>
+      <h3>Drop your X-ray image here</h3>
+      <p>or click to browse • JPG, PNG, JPEG supported</p>
+    </div>
+    <div id="preview-section">
+      <div class="preview-container">
+        <img id="preview-img" src="" alt="Preview">
+        <div class="preview-info">
+          <div class="file-name" id="file-name"></div>
+          <div class="file-size" id="file-size"></div>
+          <button class="btn" id="analyze-btn" onclick="analyze()">🔍 Analyze X-Ray</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="result-section">
+    <div class="result-card">
+      <div class="result-icon" id="result-icon"></div>
+      <div class="result-label" id="result-label"></div>
+      <div class="result-confidence" id="result-confidence"></div>
+      <div class="conf-bar-wrap"><div class="conf-bar" id="conf-bar"></div></div>
+      <div class="risk-badge" id="risk-badge"></div>
+      <div class="stats-row">
+        <div class="stat-box"><div class="stat-value" id="stat-conf"></div><div class="stat-label">Confidence</div></div>
+        <div class="stat-box"><div class="stat-value" id="stat-risk"></div><div class="stat-label">Risk Level</div></div>
+        <div class="stat-box"><div class="stat-value" id="stat-score"></div><div class="stat-label">AI Score</div></div>
+      </div>
+      <div class="disclaimer">⚠️ <strong>Disclaimer:</strong> This tool is for educational purposes only. Always consult a qualified doctor.</div>
+      <button class="btn-outline" onclick="resetPage()">🔄 Analyze Another X-Ray</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let selectedFile = null;
+
+document.getElementById('file-input').addEventListener('change', function(e) {
+  if (e.target.files[0]) handleFile(e.target.files[0]);
+});
+
+const dropZone = document.getElementById('drop-zone');
+dropZone.addEventListener('dragover', function(e) { e.preventDefault(); });
+dropZone.addEventListener('drop', function(e) {
+  e.preventDefault();
+  if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+});
+
+function handleFile(file) {
+  selectedFile = file;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    document.getElementById('preview-img').src = e.target.result;
+    document.getElementById('file-name').textContent = file.name;
+    document.getElementById('file-size').textContent = (file.size / 1024).toFixed(1) + ' KB';
+    document.getElementById('preview-section').classList.add('show');
+    document.getElementById('result-section').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+async function analyze() {
+  if (!selectedFile) { alert('Please select an image first!'); return; }
+  const btn = document.getElementById('analyze-btn');
+  btn.innerHTML = '<span class="spinner"></span> Analyzing...';
+  btn.disabled = true;
+
+  const formData = new FormData();
+  formData.append('file', selectedFile);
+
+  try {
+    const response = await fetch('/predict', { method: 'POST', body: formData });
+    const data = await response.json();
+    if (data.error) { alert('Error: ' + data.error); return; }
+    showResult(data);
+  } catch (err) {
+    alert('Server error! Make sure app.py is running. Error: ' + err.message);
+  } finally {
+    btn.innerHTML = '🔍 Analyze X-Ray';
+    btn.disabled = false;
+  }
+}
+
+function showResult(data) {
+  const isNormal = data.label === 'NORMAL';
+
+  document.getElementById('result-icon').textContent = isNormal ? '✅' : '⚠️';
+  document.getElementById('result-label').textContent = data.label;
+  document.getElementById('result-label').className = 'result-label ' + (isNormal ? 'normal' : 'pneumonia');
+  document.getElementById('result-confidence').innerHTML = 'Confidence: <span>' + data.confidence + '%</span>';
+
+  const bar = document.getElementById('conf-bar');
+  bar.className = 'conf-bar ' + (isNormal ? 'normal' : 'pneumonia');
+  bar.style.width = '0%';
+  setTimeout(function() { bar.style.width = data.confidence + '%'; }, 100);
+
+  const riskEmoji = data.risk === 'LOW' ? '🟢' : data.risk === 'MODERATE' ? '🟡' : '🔴';
+  const badge = document.getElementById('risk-badge');
+  badge.textContent = riskEmoji + ' Risk: ' + data.risk;
+  badge.className = 'risk-badge ' + data.risk.toLowerCase();
+
+  document.getElementById('stat-conf').textContent = data.confidence + '%';
+  document.getElementById('stat-risk').textContent = data.risk;
+  document.getElementById('stat-score').textContent = data.score;
+
+  const resultSection = document.getElementById('result-section');
+  resultSection.style.display = 'block';
+  resultSection.scrollIntoView({ behavior: 'smooth' });
+}
+
+function resetPage() {
+  selectedFile = null;
+  document.getElementById('file-input').value = '';
+  document.getElementById('preview-section').classList.remove('show');
+  document.getElementById('result-section').style.display = 'none';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
